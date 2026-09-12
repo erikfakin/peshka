@@ -7,7 +7,8 @@ import {
     signOut,
 } from 'firebase/auth'
 
-import { auth } from '@/firebase.js'
+import { auth, db } from '@/firebase.js'
+import { doc, serverTimestamp, setDoc } from 'firebase/firestore'
 
 export const useAuthStore = defineStore('auth', () => {
     const user = ref(null)
@@ -28,8 +29,19 @@ export const useAuthStore = defineStore('auth', () => {
         return readyPromise.then(() => user.value)
     }
 
-    function register(email, password) {
-        return createUserWithEmailAndPassword(auth, email, password)
+    async function register(email, password, ime, prezime) {
+        const cred = await createUserWithEmailAndPassword(auth, email, password)
+        try {
+            await setDoc(doc(db, 'korisnici', cred.user.uid), {
+                email,
+                ime,
+                prezime,
+                datumRegistracije: serverTimestamp(),
+            })
+        } catch (e) {
+            console.error('Profil nije spremljen:', e)
+        }
+        return cred
     }
 
     function login(email, password) {

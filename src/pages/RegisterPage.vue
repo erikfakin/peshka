@@ -10,6 +10,8 @@ const { setFlash } = useFlashStore()
 const { register } = useAuthStore()
 
 const email = ref('')
+const ime = ref('')
+const prezime = ref('')
 const password = ref('')
 const passwordConfirm = ref('')
 const submitting = ref(false)
@@ -41,7 +43,7 @@ async function submitRegister() {
     submitting.value = true
 
     try {
-        await register(email.value, password.value)
+        await register(email.value, password.value, ime.value, prezime.value)
         setFlash('Račun je otvoren. Dobro došli!')
         router.push({ name: 'home' })
     } catch (error) {
@@ -58,9 +60,9 @@ const fieldInvalid = 'border-rose-400 focus:border-rose-500 focus:ring-rose-500/
 </script>
 
 <template>
-    <div class="flex justify-center">
+    <div class="flex justify-center h-full items-center">
         <form novalidate
-            class="w-full max-w-sm space-y-5 rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8"
+            class="w-full max-w-lg space-y-5 rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8"
             @submit.prevent="submitRegister">
             <header class="space-y-1">
                 <h1 class="text-xl font-semibold tracking-tight text-slate-900">Registracija</h1>
@@ -76,6 +78,19 @@ const fieldInvalid = 'border-rose-400 focus:border-rose-500 focus:ring-rose-500/
                 <input id="email" v-model.trim="email" type="email" autocomplete="email" required
                     placeholder="ime@primjer.com" :disabled="submitting" :class="[baseField, fieldIdle]" />
             </div>
+
+            <div class="space-y-1.5">
+                <label for="ime" class="block text-sm font-medium text-slate-700">Ime</label>
+                <input id="ime" v-model.trim="ime" type="text" autocomplete="name" required placeholder="Marko"
+                    :disabled="submitting" :class="[baseField, fieldIdle]" />
+            </div>
+
+            <div class="space-y-1.5">
+                <label for="prezime" class="block text-sm font-medium text-slate-700">Prezime</label>
+                <input id="prezime" v-model.trim="prezime" type="text" autocomplete="name" required placeholder="Markić"
+                    :disabled="submitting" :class="[baseField, fieldIdle]" />
+            </div>
+
 
             <div class="space-y-1.5">
                 <label for="password" class="block text-sm font-medium text-slate-700">Lozinka</label>
