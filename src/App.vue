@@ -8,7 +8,10 @@ import FlashMessage from './components/FlashMessage.vue';
   <div>
     <AppHeader />
     <FlashMessage />
+
     <RouterView />
+
+
   </div>
 </template>
 
