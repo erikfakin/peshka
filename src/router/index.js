@@ -1,5 +1,7 @@
 import HomePage from '@/pages/HomePage.vue'
+import IzlasciPage from '@/pages/IzlasciPage.vue'
 import LoginPage from '@/pages/LoginPage.vue'
+import NoviIzlazakPage from '@/pages/NoviIzlazakPage.vue'
 import RegisterPage from '@/pages/RegisterPage.vue'
 import TestPage from '@/pages/TestPage.vue'
 import { useAuthStore } from '@/stores/auth'
@@ -24,6 +26,18 @@ const routes = [{
   path: '/test',
   name: 'test',
   component: TestPage
+},
+{
+  path: '/izlasci/novi',
+  name: 'novi-izlazak',
+  component: NoviIzlazakPage,
+  meta: { requiresAuth: true }
+},
+{
+  path: '/izlasci',
+  name: 'izlasci',
+  component: IzlasciPage,
+  meta: { requiresAuth: true }
 },
 ]
 

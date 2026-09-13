@@ -42,6 +42,9 @@ const navLink =
                 <div v-if="!authReady" class="h-5 w-32 animate-pulse rounded bg-slate-200" />
 
                 <template v-else-if="isLoggedIn">
+                    <RouterLink to="/izlasci/novi" :class="navLink" active-class="bg-slate-100 text-slate-900">
+                        Novi izlazak +
+                    </RouterLink>
                     <span class="mr-1 hidden text-slate-500 sm:inline">{{ user.email }}</span>
                     <button type="button" :class="navLink" @click="handleLogout">Odjava</button>
                 </template>
