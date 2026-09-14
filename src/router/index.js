@@ -1,5 +1,6 @@
 import HomePage from '@/pages/HomePage.vue'
 import IzlasciPage from '@/pages/IzlasciPage.vue'
+import IzlazakPage from '@/pages/IzlazakPage.vue'
 import LoginPage from '@/pages/LoginPage.vue'
 import NoviIzlazakPage from '@/pages/NoviIzlazakPage.vue'
 import RegisterPage from '@/pages/RegisterPage.vue'
@@ -31,6 +32,13 @@ const routes = [{
   path: '/izlasci/novi',
   name: 'novi-izlazak',
   component: NoviIzlazakPage,
+  meta: { requiresAuth: true }
+},
+{
+  path: '/izlasci/:id',
+  name: 'izlazak',
+  component: IzlazakPage,
+  props: true,
   meta: { requiresAuth: true }
 },
 {
