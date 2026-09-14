@@ -1,138 +1,124 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useFlashStore } from '@/stores/flash.js'
+import { toast } from 'vue-sonner'
 import { useAuthStore } from '@/stores/auth'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 const router = useRouter()
-const { setFlash } = useFlashStore()
-
 const { register } = useAuthStore()
 
 const email = ref('')
 const ime = ref('')
 const prezime = ref('')
-const password = ref('')
-const passwordConfirm = ref('')
+const lozinka = ref('')
+const potvrda = ref('')
 const submitting = ref(false)
-const formError = ref('')
+const greska = ref('')
 
-
-
-
-const passwordTooShort = computed(
-    () => password.value.length > 0 && password.value.length < 6,
+const kratkaLozinka = computed(() => lozinka.value.length > 0 && lozinka.value.length < 6)
+const lozinkeSeRazlikuju = computed(
+    () => potvrda.value.length > 0 && lozinka.value !== potvrda.value,
 )
 
-const passwordsMismatch = computed(
-    () => passwordConfirm.value.length > 0 && password.value !== passwordConfirm.value,
-)
-
-const canSubmit = computed(
+const mozeSpremiti = computed(
     () =>
         !submitting.value &&
         email.value.length > 0 &&
-        password.value.length >= 6 &&
-        password.value === passwordConfirm.value,
+        ime.value.length > 0 &&
+        prezime.value.length > 0 &&
+        lozinka.value.length >= 6 &&
+        lozinka.value === potvrda.value,
 )
 
-async function submitRegister() {
-    if (!canSubmit.value) return
+async function registracija() {
+    if (!mozeSpremiti.value) return
 
-    formError.value = ''
+    greska.value = ''
     submitting.value = true
 
     try {
-        await register(email.value, password.value, ime.value, prezime.value)
-        setFlash('Račun je otvoren. Dobro došli!')
+        await register(email.value, lozinka.value, ime.value, prezime.value)
+        toast.success('Račun je otvoren. Dobro došli!')
         router.push({ name: 'home' })
-    } catch (error) {
-        formError.value = error.code
+    } catch (e) {
+        console.error(e)
+        greska.value =
+            e.code === 'auth/email-already-in-use'
+                ? 'Ta email adresa je već registrirana.'
+                : 'Registracija nije uspjela. Pokušajte ponovno.'
         submitting.value = false
     }
 }
-
-const baseField =
-    'w-full rounded-md border bg-white px-3 py-2 text-slate-900 placeholder:text-slate-400 ' +
-    'transition focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-slate-50'
-const fieldIdle = 'border-slate-300 focus:border-slate-900 focus:ring-slate-900/15'
-const fieldInvalid = 'border-rose-400 focus:border-rose-500 focus:ring-rose-500/20'
 </script>
 
 <template>
-    <div class="flex justify-center h-full items-center">
-        <form novalidate
-            class="w-full max-w-lg space-y-5 rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8"
-            @submit.prevent="submitRegister">
-            <header class="space-y-1">
-                <h1 class="text-xl font-semibold tracking-tight text-slate-900">Registracija</h1>
-                <p class="text-sm text-slate-500">Otvorite račun s email adresom i lozinkom.</p>
-            </header>
+    <div class="mx-auto max-w-md px-4 py-10">
+        <Card>
+            <CardHeader>
+                <CardTitle>Registracija</CardTitle>
+                <CardDescription>Otvorite račun s email adresom i lozinkom.</CardDescription>
+            </CardHeader>
 
-            <p v-if="formError" class="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
-                {{ formError }}
-            </p>
+            <CardContent>
+                <form novalidate class="space-y-5" @submit.prevent="registracija">
+                    <Alert v-if="greska" variant="destructive">
+                        <AlertDescription>{{ greska }}</AlertDescription>
+                    </Alert>
 
-            <div class="space-y-1.5">
-                <label for="email" class="block text-sm font-medium text-slate-700">Email</label>
-                <input id="email" v-model.trim="email" type="email" autocomplete="email" required
-                    placeholder="ime@primjer.com" :disabled="submitting" :class="[baseField, fieldIdle]" />
-            </div>
+                    <div class="space-y-2">
+                        <Label for="email">Email</Label>
+                        <Input id="email" v-model.trim="email" type="email" autocomplete="email"
+                            placeholder="ime@primjer.com" :disabled="submitting" />
+                    </div>
 
-            <div class="space-y-1.5">
-                <label for="ime" class="block text-sm font-medium text-slate-700">Ime</label>
-                <input id="ime" v-model.trim="ime" type="text" autocomplete="name" required placeholder="Marko"
-                    :disabled="submitting" :class="[baseField, fieldIdle]" />
-            </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="space-y-2">
+                            <Label for="ime">Ime</Label>
+                            <Input id="ime" v-model.trim="ime" type="text" placeholder="Marko"
+                                :disabled="submitting" />
+                        </div>
+                        <div class="space-y-2">
+                            <Label for="prezime">Prezime</Label>
+                            <Input id="prezime" v-model.trim="prezime" type="text" placeholder="Markić"
+                                :disabled="submitting" />
+                        </div>
+                    </div>
 
-            <div class="space-y-1.5">
-                <label for="prezime" class="block text-sm font-medium text-slate-700">Prezime</label>
-                <input id="prezime" v-model.trim="prezime" type="text" autocomplete="name" required placeholder="Markić"
-                    :disabled="submitting" :class="[baseField, fieldIdle]" />
-            </div>
+                    <div class="space-y-2">
+                        <Label for="lozinka">Lozinka</Label>
+                        <Input id="lozinka" v-model="lozinka" type="password" autocomplete="new-password"
+                            placeholder="••••••••" :disabled="submitting" :aria-invalid="kratkaLozinka" />
+                        <p class="text-xs" :class="kratkaLozinka ? 'text-destructive' : 'text-muted-foreground'">
+                            Najmanje 6 znakova.
+                        </p>
+                    </div>
 
+                    <div class="space-y-2">
+                        <Label for="potvrda">Ponovite lozinku</Label>
+                        <Input id="potvrda" v-model="potvrda" type="password" autocomplete="new-password"
+                            placeholder="••••••••" :disabled="submitting" :aria-invalid="lozinkeSeRazlikuju" />
+                        <p v-if="lozinkeSeRazlikuju" class="text-destructive text-xs">
+                            Lozinke se ne podudaraju.
+                        </p>
+                    </div>
 
-            <div class="space-y-1.5">
-                <label for="password" class="block text-sm font-medium text-slate-700">Lozinka</label>
-                <input id="password" v-model="password" type="password" autocomplete="new-password" required
-                    placeholder="••••••••" :disabled="submitting" :aria-invalid="passwordTooShort"
-                    aria-describedby="password-hint"
-                    :class="[baseField, passwordTooShort ? fieldInvalid : fieldIdle]" />
-                <p id="password-hint" class="text-xs" :class="passwordTooShort ? 'text-rose-600' : 'text-slate-500'">
-                    Najmanje 6 znakova.
-                </p>
-            </div>
+                    <Button type="submit" size="lg" class="w-full" :disabled="!mozeSpremiti">
+                        {{ submitting ? 'Otvaram račun…' : 'Registriraj se' }}
+                    </Button>
 
-            <div class="space-y-1.5">
-                <label for="password-confirm" class="block text-sm font-medium text-slate-700">
-                    Ponovite lozinku
-                </label>
-                <input id="password-confirm" v-model="passwordConfirm" type="password" autocomplete="new-password"
-                    required placeholder="••••••••" :disabled="submitting" :aria-invalid="passwordsMismatch"
-                    :class="[baseField, passwordsMismatch ? fieldInvalid : fieldIdle]" />
-                <p v-if="passwordsMismatch" class="text-xs text-rose-600">
-                    Lozinke se ne podudaraju.
-                </p>
-            </div>
-
-            <button type="submit" :disabled="!canSubmit" class="flex w-full items-center justify-center gap-2 rounded-md bg-slate-900 px-4 py-2.5
-               text-sm font-medium text-white transition hover:bg-slate-800
-               focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2
-               disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500">
-                <svg v-if="submitting" class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z" />
-                </svg>
-                {{ submitting ? 'Otvaramo račun…' : 'Registriraj se' }}
-            </button>
-
-            <p class="text-center text-sm text-slate-500">
-                Već imate račun?
-                <RouterLink to="/login"
-                    class="font-medium text-slate-900 underline underline-offset-4 hover:text-slate-700">
-                    Prijavite se
-                </RouterLink>
-            </p>
-        </form>
+                    <p class="text-muted-foreground text-center text-sm">
+                        Već imate račun?
+                        <RouterLink to="/login" class="text-foreground font-medium underline underline-offset-4">
+                            Prijavite se
+                        </RouterLink>
+                    </p>
+                </form>
+            </CardContent>
+        </Card>
     </div>
 </template>

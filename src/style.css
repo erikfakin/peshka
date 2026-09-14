@@ -1,1 +1,98 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap');
+
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn-vue/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+.leaflet-container .leaflet-pane,
+.leaflet-container .leaflet-top,
+.leaflet-container .leaflet-bottom,
+.leaflet-container .leaflet-control {
+    z-index: 1;
+}
+
+@theme inline {
+    --font-sans: 'Geist Variable', sans-serif;
+    --color-brand-navy: var(--brand-navy);
+    --color-brand-coral: var(--brand-coral);
+    --color-brand-teal: var(--brand-teal);
+    --font-heading: var(--font-sans);
+    --color-chart-2: var(--chart-2);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    --radius-sm: calc(var(--radius) - 4px);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+    --brand-navy: #001e40;
+    --brand-coral: #fe7e4f;
+    --brand-teal: #00aea0;
+
+    --background: #f5f7fa;
+    --foreground: var(--brand-navy);
+    --card: #ffffff;
+    --card-foreground: var(--brand-navy);
+    --popover: #ffffff;
+    --popover-foreground: var(--brand-navy);
+    --primary: var(--brand-coral);
+    --primary-foreground: var(--brand-navy);
+    --secondary: #e0f4f2;
+    --secondary-foreground: #00665e;
+    --muted: #edf1f6;
+    --muted-foreground: #56657a;
+    --accent: #edf1f6;
+    --accent-foreground: var(--brand-navy);
+    --destructive: oklch(0.577 0.245 27.325);
+    --border: #d9e0ea;
+    --input: #d9e0ea;
+    --ring: var(--brand-teal);
+    --chart-2: var(--brand-teal);
+    --radius: 0.625rem;
+}
+
+.oznaka-ulova {
+    background: none;
+    border: none;
+}
+
+.oznaka-ulova svg {
+    filter: drop-shadow(0 2px 3px rgb(0 30 64 / 0.35));
+    transform-origin: 50% 100%;
+    transition: transform 150ms ease;
+}
+
+.oznaka-ulova:hover svg {
+    transform: scale(1.12);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    }
+  body {
+    @apply bg-background text-foreground;
+    @apply font-sans;
+    }
+}

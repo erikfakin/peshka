@@ -1,99 +1,82 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useFlashStore } from '@/stores/flash.js'
+import { toast } from 'vue-sonner'
 import { useAuthStore } from '@/stores/auth'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 const router = useRouter()
-const { setFlash } = useFlashStore()
 const { login } = useAuthStore()
 
 const email = ref('')
-const password = ref('')
+const lozinka = ref('')
 const submitting = ref(false)
-const formError = ref('')
+const greska = ref('')
 
-
-
-const canSubmit = computed(
-    () =>
-        !submitting.value &&
-        email.value.length > 0 &&
-        password.value.length >= 6
+const mozeSpremiti = computed(
+    () => !submitting.value && email.value.length > 0 && lozinka.value.length >= 6,
 )
 
-async function submitLogin() {
+async function prijava() {
+    if (!mozeSpremiti.value) return
 
-    if (!canSubmit.value) return
-
-    formError.value = ''
+    greska.value = ''
     submitting.value = true
 
     try {
-        await login(email.value, password.value)
-        setFlash('Uspiješno ste se prijavili. Dobro došli!')
+        await login(email.value, lozinka.value)
+        toast.success('Prijavljeni ste.')
         router.push({ name: 'home' })
-    } catch (error) {
-        formError.value = error.code
+    } catch (e) {
+        console.error(e)
+        greska.value = 'Pogrešan email ili lozinka.'
         submitting.value = false
     }
 }
-
-const baseField =
-    'w-full rounded-md border bg-white px-3 py-2 text-slate-900 placeholder:text-slate-400 ' +
-    'transition focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-slate-50'
-const fieldIdle = 'border-slate-300 focus:border-slate-900 focus:ring-slate-900/15'
-const fieldInvalid = 'border-rose-400 focus:border-rose-500 focus:ring-rose-500/20'
 </script>
 
 <template>
-    <div class="flex justify-center">
-        <form novalidate
-            class="w-full max-w-sm space-y-5 rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8"
-            @submit.prevent="submitLogin">
-            <header class="space-y-1">
-                <h1 class="text-xl font-semibold tracking-tight text-slate-900">Prijava</h1>
-                <p class="text-sm text-slate-500">Prijavite se s email adresom i lozinkom.</p>
-            </header>
+    <div class="mx-auto max-w-sm px-4 py-10">
+        <Card>
+            <CardHeader>
+                <CardTitle>Prijava</CardTitle>
+                <CardDescription>Prijavite se s email adresom i lozinkom.</CardDescription>
+            </CardHeader>
 
-            <p v-if="formError" class="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
-                {{ formError }}
-            </p>
+            <CardContent>
+                <form novalidate class="space-y-5" @submit.prevent="prijava">
+                    <Alert v-if="greska" variant="destructive">
+                        <AlertDescription>{{ greska }}</AlertDescription>
+                    </Alert>
 
-            <div class="space-y-1.5">
-                <label for="email" class="block text-sm font-medium text-slate-700">Email</label>
-                <input id="email" v-model.trim="email" type="email" autocomplete="email" required
-                    placeholder="ime@primjer.com" :disabled="submitting" :class="[baseField, fieldIdle]" />
-            </div>
+                    <div class="space-y-2">
+                        <Label for="email">Email</Label>
+                        <Input id="email" v-model.trim="email" type="email" autocomplete="email"
+                            placeholder="ime@primjer.com" :disabled="submitting" />
+                    </div>
 
-            <div class="space-y-1.5">
-                <label for="password" class="block text-sm font-medium text-slate-700">Lozinka</label>
-                <input id="password" v-model="password" type="password" autocomplete="new-password" required
-                    placeholder="••••••••" :disabled="submitting" aria-describedby="password-hint"
-                    :class="[baseField, fieldIdle]" />
+                    <div class="space-y-2">
+                        <Label for="lozinka">Lozinka</Label>
+                        <Input id="lozinka" v-model="lozinka" type="password" autocomplete="current-password"
+                            placeholder="••••••••" :disabled="submitting" />
+                    </div>
 
-            </div>
+                    <Button type="submit" size="lg" class="w-full" :disabled="!mozeSpremiti">
+                        {{ submitting ? 'Prijavljujem…' : 'Prijavi se' }}
+                    </Button>
 
-
-
-            <button type="submit" :disabled="!canSubmit" class="flex w-full items-center justify-center gap-2 rounded-md bg-slate-900 px-4 py-2.5
-               text-sm font-medium text-white transition hover:bg-slate-800
-               focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2
-               disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500">
-                <svg v-if="submitting" class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z" />
-                </svg>
-                {{ submitting ? 'Prijavljujemo Vas…' : 'Prijavite se' }}
-            </button>
-
-            <p class="text-center text-sm text-slate-500">
-                Nemate račun?
-                <RouterLink to="/register"
-                    class="font-medium text-slate-900 underline underline-offset-4 hover:text-slate-700">
-                    Registrirajte se
-                </RouterLink>
-            </p>
-        </form>
+                    <p class="text-muted-foreground text-center text-sm">
+                        Nemate račun?
+                        <RouterLink to="/register" class="text-foreground font-medium underline underline-offset-4">
+                            Registrirajte se
+                        </RouterLink>
+                    </p>
+                </form>
+            </CardContent>
+        </Card>
     </div>
 </template>

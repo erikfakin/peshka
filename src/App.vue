@@ -1,18 +1,10 @@
 <script setup>
-import AppHeader from './components/AppHeader.vue';
-import FlashMessage from './components/FlashMessage.vue';
-
+import AppHeader from '@/components/AppHeader.vue'
+import { Toaster } from '@/components/ui/sonner'
 </script>
 
 <template>
-  <div>
     <AppHeader />
-    <FlashMessage />
-
+    <Toaster position="top-center" />
     <RouterView />
-
-
-  </div>
 </template>
-
-<style scoped></style>
