@@ -1,9 +1,7 @@
 // Obrnuto geokodiranje preko Nominatima (OpenStreetMap).
 
-
 const BAZA = 'https://nominatim.openstreetmap.org/reverse'
 const spremnik = new Map()
-
 
 function izAdrese(a = {}) {
     return (
@@ -21,32 +19,20 @@ function izAdrese(a = {}) {
     )
 }
 
-export async function nazivZaKoordinate(gpsSirina, gpsDuzina, { signal } = {}) {
+export async function nazivZaKoordinate(gpsSirina, gpsDuzina) {
     if (gpsSirina == null || gpsDuzina == null) return null
 
     const kljuc = `${gpsSirina.toFixed(4)},${gpsDuzina.toFixed(4)}`
     if (spremnik.has(kljuc)) return spremnik.get(kljuc)
 
+    const url = `${BAZA}?format=jsonv2&lat=${gpsSirina}&lon=${gpsDuzina}&accept-language=hr`
 
-    for (const zoom of [14, 10]) {
-        const url =
-            `${BAZA}?format=jsonv2&lat=${gpsSirina}&lon=${gpsDuzina}` +
-            `&accept-language=hr`
+    const odgovor = await fetch(url, { headers: { Accept: 'application/json' } })
+    if (!odgovor.ok) throw new Error(`Nominatim je vratio ${odgovor.status}.`)
 
-        const odgovor = await fetch(url, { signal, headers: { Accept: 'application/json' } })
-        if (!odgovor.ok) throw new Error(`Nominatim je vratio ${odgovor.status}.`)
+    const podaci = await odgovor.json()
+    const naziv = podaci.error ? null : izAdrese(podaci.address)
 
-        const podaci = await odgovor.json()
-        if (podaci.error) continue
-
-
-        const naziv = izAdrese(podaci.address)
-        if (naziv) {
-            spremnik.set(kljuc, naziv)
-            return naziv
-        }
-    }
-
-    spremnik.set(kljuc, null)
-    return null
+    spremnik.set(kljuc, naziv)
+    return naziv
 }

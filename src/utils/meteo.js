@@ -1,8 +1,10 @@
-// Open-Meteo je besplatan i ne traži ključ. Dva endpointa:
-// forecast  -> vjetar, tlak, temperatura zraka
-// marine    -> valovi, temperatura mora
+import { isoDatum } from '@/utils/format.js'
 
-const VJETROVI = [
+// forecast  -> vjetar, tlak, temperatura zraka
+// marine    -> valovi, temperatura mora, razina mora (plima/oseka)
+
+
+export const VJETROVI = [
     'Tramontana', // N
     'Bura', // NE
     'Levant', // E
@@ -13,32 +15,25 @@ const VJETROVI = [
     'Maestral', // NW
 ]
 
-export function smjerIzStupnjeva(deg) {
+const MINUTA = 60 * 1000
+
+function smjerIzStupnjeva(deg) {
     if (deg == null) return null
     return VJETROVI[Math.round(deg / 45) % 8]
 }
 
-export function stanjeMoraIzValova(visinaM) {
+function stanjeMoraIzValova(visinaM) {
     if (visinaM == null) return null
     if (visinaM < 0.5) return 'Mirno'
     if (visinaM < 1.25) return 'Valovito'
     return 'Uzburkano'
 }
 
-function zaApi(d) {
-    const p = (n) => String(n).padStart(2, '0')
-    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
-}
 
-/**
- * @returns {Promise<Array>} niz po satima:
- *   { vrijeme, smjerVjetraDeg, smjerVjetra, brzinaVjetraCv,
- *     tlakHpa, tempZrakaC, tempMoraC, valoviM, stanjeMora }
- */
-export async function dohvatiUvjete(lat, lng, datumOd, datumDo = datumOd) {
+async function dohvatiUvjete(lat, lng, datumOd, datumDo = datumOd) {
     const zajedno =
         `latitude=${lat}&longitude=${lng}` +
-        `&start_date=${zaApi(datumOd)}&end_date=${zaApi(datumDo)}` +
+        `&start_date=${isoDatum(datumOd)}&end_date=${isoDatum(datumDo)}` +
         `&timezone=Europe%2FZagreb`
 
     const urlKopno =
@@ -48,7 +43,7 @@ export async function dohvatiUvjete(lat, lng, datumOd, datumDo = datumOd) {
 
     const urlMore =
         `https://marine-api.open-meteo.com/v1/marine?${zajedno}` +
-        `&hourly=wave_height,sea_surface_temperature`
+        `&hourly=wave_height,sea_surface_temperature,sea_level_height_msl`
 
     const odgovor = await fetch(urlKopno)
     if (!odgovor.ok) throw new Error(`Open-Meteo ${odgovor.status}`)
@@ -70,11 +65,12 @@ export async function dohvatiUvjete(lat, lng, datumOd, datumDo = datumOd) {
             smjerVjetraDeg: deg,
             smjerVjetra: smjerIzStupnjeva(deg),
             brzinaVjetraCv: zaokruzi(h.wind_speed_10m?.[i]),
-            tlakHpa: zaokruzi(h.surface_pressure?.[i]),
+            tlakHpa: zaokruzi(h.surface_pressure?.[i], 1),
             tempZrakaC: zaokruzi(h.temperature_2m?.[i], 1),
             tempMoraC: zaokruzi(m?.sea_surface_temperature?.[i], 1),
             valoviM: zaokruzi(valoviM, 2),
             stanjeMora: stanjeMoraIzValova(valoviM),
+            razinaMoraM: zaokruzi(m?.sea_level_height_msl?.[i], 2),
         }
     })
 }
@@ -84,21 +80,54 @@ function zaokruzi(v, decimala = 0) {
     return Number(Number(v).toFixed(decimala))
 }
 
+function najbliziIndeks(satno, datum) {
+    if (!satno?.length || !(datum instanceof Date)) return -1
 
-export function satZaVrijeme(satno, datum) {
-    if (!satno?.length) return null
     const cilj = datum.getTime()
-    return satno.reduce((najblizi, s) =>
-        Math.abs(new Date(s.vrijeme) - cilj) < Math.abs(new Date(najblizi.vrijeme) - cilj)
-            ? s
-            : najblizi,
-    )
+    let indeks = -1
+    let razlika = Infinity
+
+    satno.forEach((s, i) => {
+        const d = Math.abs(new Date(s.vrijeme).getTime() - cilj)
+        if (d < razlika) {
+            razlika = d
+            indeks = i
+        }
+    })
+
+    return razlika <= 90 * MINUTA ? indeks : -1
 }
 
-export function trendTlaka(satno) {
-    const vrijednosti = satno.map((s) => s.tlakHpa).filter((v) => v != null)
-    if (vrijednosti.length < 2) return null
-    const razlika = vrijednosti.at(-1) - vrijednosti[0]
-    if (Math.abs(razlika) < 1) return 'stabilan'
-    return razlika > 0 ? 'raste' : 'pada'
+function promjena(satno, indeks, polje, sati, prag) {
+    const sada = satno[indeks]?.[polje]
+    if (sada == null) return null
+
+    const pocetak = Math.max(0, indeks - sati)
+    const prije = satno[pocetak]?.[polje]
+    if (prije == null || pocetak === indeks) return null
+
+    const razlika = Number((sada - prije).toFixed(2))
+    return {
+        promjena: razlika,
+        sati: indeks - pocetak,
+        smjer: Math.abs(razlika) < prag ? 'stabilno' : razlika > 0 ? 'raste' : 'pada',
+    }
+}
+
+export async function uvjetiZaTrenutak(lat, lng, kada) {
+    const satno = await dohvatiUvjete(
+        lat,
+        lng,
+        new Date(kada.getTime() - 180 * MINUTA),
+        new Date(kada.getTime() + 60 * MINUTA),
+    )
+
+    const i = najbliziIndeks(satno, kada)
+    if (i === -1) return { uvjeti: null, trendTlaka: null, plimaOseka: null }
+
+    return {
+        uvjeti: satno[i],
+        trendTlaka: promjena(satno, i, 'tlakHpa', 3, 0.5),
+        plimaOseka: promjena(satno, i, 'razinaMoraM', 1, 0.02),
+    }
 }

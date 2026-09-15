@@ -1,25 +1,20 @@
 <script setup>
 import { computed, ref } from 'vue'
-import {
-    LControlLayers,
-    LMap,
-    LMarker,
-    LTileLayer,
-} from '@vue-leaflet/vue-leaflet'
-import 'leaflet/dist/leaflet.css'
+import { LMap, LMarker, LTileLayer } from '@vue-leaflet/vue-leaflet'
+import { Button } from '@/components/ui/button'
+import { ikonaOznake } from '@/utils/oznaka.js'
 
 const props = defineProps({
     // { gpsSirina: number, gpsDuzina: number } ili null
     modelValue: { type: Object, default: null },
 })
+
 const emit = defineEmits(['update:modelValue'])
 
-const POCETNI_CENTAR = [45.15, 13.90]
+const POCETNI_CENTAR = [45.15, 13.9]
 
 const center = ref(
-    props.modelValue
-        ? [props.modelValue.gpsSirina, props.modelValue.gpsDuzina]
-        : POCETNI_CENTAR,
+    props.modelValue ? [props.modelValue.gpsSirina, props.modelValue.gpsDuzina] : POCETNI_CENTAR,
 )
 const zoom = ref(10)
 
@@ -35,14 +30,6 @@ function posalji(lat, lng) {
         gpsSirina: Number(lat.toFixed(5)),
         gpsDuzina: Number(lng.toFixed(5)),
     })
-}
-
-function naKlik(e) {
-    posalji(e.latlng.lat, e.latlng.lng)
-}
-
-function naPovlacenje(latlng) {
-    posalji(latlng.lat, latlng.lng)
 }
 
 function mojaLokacija() {
@@ -76,29 +63,25 @@ function mojaLokacija() {
 <template>
     <div class="space-y-2">
         <div class="flex items-center justify-between gap-3">
-            <p class="text-sm text-slate-500">Kliknite na kartu ili povucite oznaku.</p>
-            <button type="button" :disabled="traziLokaciju"
-                class="shrink-0 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
-                @click="mojaLokacija">
+            <p class="text-muted-foreground text-sm">Kliknite na kartu ili povucite oznaku.</p>
+            <Button type="button" variant="outline" size="sm" :disabled="traziLokaciju" @click="mojaLokacija">
                 {{ traziLokaciju ? 'Tražim…' : 'Moja lokacija' }}
-            </button>
+            </Button>
         </div>
 
-
-        <div class="h-[500px] w-full overflow-hidden rounded-lg border border-slate-300">
-            <LMap v-model:zoom="zoom" v-model:center="center" @click="naKlik">
-                <LTileLayer url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap"
-                    layer-type="base" name="Osnovna karta" />
-                <LControlLayers />
-                <LMarker v-if="markerLatLng" :lat-lng="markerLatLng" :draggable="true" @update:lat-lng="naPovlacenje" />
+        <div class="h-100 w-full overflow-hidden rounded-lg border">
+            <LMap v-model:zoom="zoom" v-model:center="center" @click="posalji($event.latlng.lat, $event.latlng.lng)">
+                <LTileLayer url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap" />
+                <LMarker v-if="markerLatLng" :lat-lng="markerLatLng" :draggable="true" :icon="ikonaOznake()"
+                    @update:lat-lng="posalji($event.lat, $event.lng)" />
             </LMap>
         </div>
 
-        <p v-if="greska" role="alert" class="text-xs text-rose-600">{{ greska }}</p>
+        <p v-if="greska" role="alert" class="text-destructive text-xs">{{ greska }}</p>
 
-        <p v-if="modelValue" class="font-mono text-xs text-slate-500">
+        <p v-if="modelValue" class="text-muted-foreground font-mono text-xs">
             {{ modelValue.gpsSirina.toFixed(5) }}, {{ modelValue.gpsDuzina.toFixed(5) }}
         </p>
-        <p v-else class="text-xs text-slate-400">Lokacija nije odabrana.</p>
+        <p v-else class="text-muted-foreground text-xs">Lokacija nije odabrana.</p>
     </div>
 </template>

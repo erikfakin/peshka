@@ -1,8 +1,8 @@
 import HomePage from '@/pages/HomePage.vue'
 import IzlasciPage from '@/pages/IzlasciPage.vue'
+import IzlazakFormaPage from '@/pages/IzlazakFormaPage.vue'
 import IzlazakPage from '@/pages/IzlazakPage.vue'
 import LoginPage from '@/pages/LoginPage.vue'
-import NoviIzlazakPage from '@/pages/NoviIzlazakPage.vue'
 import RegisterPage from '@/pages/RegisterPage.vue'
 import TestPage from '@/pages/TestPage.vue'
 import { useAuthStore } from '@/stores/auth'
@@ -31,7 +31,14 @@ const routes = [{
 {
   path: '/izlasci/novi',
   name: 'novi-izlazak',
-  component: NoviIzlazakPage,
+  component: IzlazakFormaPage,
+  meta: { requiresAuth: true }
+},
+{
+  path: '/izlasci/:id/uredi',
+  name: 'uredi-izlazak',
+  component: IzlazakFormaPage,
+  props: true,
   meta: { requiresAuth: true }
 },
 {
@@ -46,7 +53,7 @@ const routes = [{
   name: 'izlasci',
   component: IzlasciPage,
   meta: { requiresAuth: true }
-},
+}
 ]
 
 const router = createRouter({

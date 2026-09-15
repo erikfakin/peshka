@@ -1,5 +1,5 @@
 // Upload i brisanje fotografija: datoteke idu u Firebase Storage,
-// metapodaci u top-level kolekciju 'fotografije'.
+// metapodaci u kolekciju 'fotografije'.
 
 import {
     collection,
@@ -8,7 +8,6 @@ import {
     getDocs,
     orderBy,
     query,
-    serverTimestamp,
     setDoc,
     where,
     writeBatch,
@@ -21,7 +20,7 @@ import {
 } from 'firebase/storage'
 import { db, storage } from '@/firebase.js'
 
-const MAX_STRANICA = 1600 // duža stranica u px nakon smanjivanja
+const MAX_STRANICA = 1600
 const KVALITETA = 0.82
 
 export async function pripremiSliku(datoteka, maxStranica = MAX_STRANICA) {
@@ -48,7 +47,7 @@ export async function pripremiSliku(datoteka, maxStranica = MAX_STRANICA) {
         ),
     )
 
-    return { blob, sirina, visina }
+    return blob
 }
 
 function posalji(ref, blob, onNapredak) {
@@ -66,25 +65,16 @@ function posalji(ref, blob, onNapredak) {
     })
 }
 
-
 export async function dodajFotografije(
     datoteke,
-    {
-        ulovId,
-        izlazakId,
-        korisnikId,
-        vidljivost = 'Privatno',
-        pocetniRedoslijed = 0,
-        onNapredak,
-        onSpremljena,
-    },
+    { ulovId, izlazakId, korisnikId, vidljivost = 'Privatno', pocetniRedoslijed = 0, onNapredak },
 ) {
     const popis = Array.from(datoteke ?? [])
     const spremljene = []
 
     for (const [i, datoteka] of popis.entries()) {
         const fotoId = doc(collection(db, 'fotografije')).id
-        const { blob, sirina, visina } = await pripremiSliku(datoteka)
+        const blob = await pripremiSliku(datoteka)
 
         const putanja = `korisnici/${korisnikId}/ulovi/${ulovId}/${fotoId}.jpg`
         const ref = spremisteRef(storage, putanja)
@@ -100,24 +90,16 @@ export async function dodajFotografije(
             korisnikId,
             putanja,
             url,
-            sirina,
-            visina,
-            velicinaB: blob.size,
-            mimeType: 'image/jpeg',
             redoslijed: pocetniRedoslijed + i,
             vidljivost,
-            vrijemeUcitavanja: serverTimestamp(),
         }
 
         await setDoc(doc(db, 'fotografije', fotoId), zapis)
-        const spremljena = { id: fotoId, ...zapis }
-        spremljene.push(spremljena)
-        onSpremljena?.(spremljena, datoteka)
+        spremljene.push({ id: fotoId, ...zapis })
     }
 
     return spremljene
 }
-
 
 export async function ucitajFotografijeIzlaska(izlazakId, korisnikId) {
     const snap = await getDocs(
@@ -132,16 +114,32 @@ export async function ucitajFotografijeIzlaska(izlazakId, korisnikId) {
     const poUlovu = {}
     for (const d of snap.docs) {
         const foto = { id: d.id, ...d.data() }
-            ; (poUlovu[foto.ulovId] ??= []).push(foto)
+        if (!poUlovu[foto.ulovId]) poUlovu[foto.ulovId] = []
+        poUlovu[foto.ulovId].push(foto)
     }
     return poUlovu
+}
+
+export async function ucitajFotografijeUlova(ulovId, { korisnikId = null } = {}) {
+    const dokaz = korisnikId
+        ? where('korisnikId', '==', korisnikId)
+        : where('vidljivost', '==', 'Javno')
+
+    const snap = await getDocs(
+        query(
+            collection(db, 'fotografije'),
+            where('ulovId', '==', ulovId),
+            dokaz,
+            orderBy('redoslijed'),
+        ),
+    )
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() }))
 }
 
 async function ukloniDatoteku(putanja) {
     try {
         await deleteObject(spremisteRef(storage, putanja))
     } catch (e) {
-        // Datoteka je već obrisana — dokument svejedno maknemo.
         if (e.code !== 'storage/object-not-found') throw e
     }
 }
@@ -151,15 +149,18 @@ export async function obrisiFotografiju(foto) {
     await deleteDoc(doc(db, 'fotografije', foto.id))
 }
 
-
-export async function obrisiFotografijeUlova(ulovId, korisnikId) {
-    const snap = await getDocs(
+export function fotografijeVlasnika(ulovId, korisnikId) {
+    return getDocs(
         query(
             collection(db, 'fotografije'),
             where('ulovId', '==', ulovId),
             where('korisnikId', '==', korisnikId),
         ),
     )
+}
+
+export async function obrisiFotografijeUlova(ulovId, korisnikId) {
+    const snap = await fotografijeVlasnika(ulovId, korisnikId)
     if (snap.empty) return
 
     await Promise.all(snap.docs.map((d) => ukloniDatoteku(d.data().putanja)))
