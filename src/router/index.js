@@ -3,8 +3,10 @@ import IzlasciPage from '@/pages/IzlasciPage.vue'
 import IzlazakFormaPage from '@/pages/IzlazakFormaPage.vue'
 import IzlazakPage from '@/pages/IzlazakPage.vue'
 import LoginPage from '@/pages/LoginPage.vue'
+import ProfilPage from '@/pages/ProfilPage.vue'
 import RegisterPage from '@/pages/RegisterPage.vue'
 import TestPage from '@/pages/TestPage.vue'
+import UlovPage from '@/pages/UlovPage.vue'
 import { useAuthStore } from '@/stores/auth'
 import { createRouter, createWebHistory } from 'vue-router'
 
@@ -53,6 +55,18 @@ const routes = [{
   name: 'izlasci',
   component: IzlasciPage,
   meta: { requiresAuth: true }
+},
+{
+  path: '/ulov/:id',
+  name: 'ulov',
+  component: UlovPage,
+  props: true
+},
+{
+  path: '/profil/:id',
+  name: 'profil',
+  component: ProfilPage,
+  props: true
 }
 ]
 

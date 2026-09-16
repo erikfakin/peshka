@@ -24,6 +24,12 @@ export default defineConfig([
   js.configs.recommended,
   ...pluginVue.configs['flat/essential'],
 
+  {
+    name: 'app/jednorjecne-komponente',
+    files: ['src/components/ui/**/*.vue', 'src/components/Komentari.vue'],
+    rules: { 'vue/multi-word-component-names': 'off' },
+  },
+
   ...pluginOxlint.buildFromOxlintConfigFile('.oxlintrc.json'),
 
   skipFormatting,
