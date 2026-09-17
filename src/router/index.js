@@ -5,7 +5,6 @@ import IzlazakPage from '@/pages/IzlazakPage.vue'
 import LoginPage from '@/pages/LoginPage.vue'
 import ProfilPage from '@/pages/ProfilPage.vue'
 import RegisterPage from '@/pages/RegisterPage.vue'
-import TestPage from '@/pages/TestPage.vue'
 import UlovPage from '@/pages/UlovPage.vue'
 import { useAuthStore } from '@/stores/auth'
 import { createRouter, createWebHistory } from 'vue-router'
@@ -24,11 +23,6 @@ const routes = [{
   path: '/login',
   name: 'login',
   component: LoginPage
-},
-{
-  path: '/test',
-  name: 'test',
-  component: TestPage
 },
 {
   path: '/izlasci/novi',
