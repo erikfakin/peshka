@@ -1,3 +1,4 @@
+import AnalitikaPage from '@/pages/AnalitikaPage.vue'
 import HomePage from '@/pages/HomePage.vue'
 import IzlasciPage from '@/pages/IzlasciPage.vue'
 import IzlazakFormaPage from '@/pages/IzlazakFormaPage.vue'
@@ -48,6 +49,12 @@ const routes = [{
   path: '/izlasci',
   name: 'izlasci',
   component: IzlasciPage,
+  meta: { requiresAuth: true }
+},
+{
+  path: '/analitika',
+  name: 'analitika',
+  component: AnalitikaPage,
   meta: { requiresAuth: true }
 },
 {

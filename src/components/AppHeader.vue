@@ -1,62 +1,58 @@
 <script setup>
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
+import { toast } from 'vue-sonner'
 
 import { useAuthStore } from '@/stores/auth'
-import { useFlashStore } from '@/stores/flash'
+import { Button } from '@/components/ui/button'
 
-import logo from "@/assets/icons/logo.svg"
+import logo from '@/assets/icons/logo.svg'
 
 const router = useRouter()
-
 const authStore = useAuthStore()
+const { user, punoIme, isLoggedIn, authReady } = storeToRefs(authStore)
 
-const { user, isLoggedIn, authReady } = storeToRefs(authStore)
-const { logout } = authStore
+const stavka = 'text-white/80 hover:bg-white/10 hover:text-white [&.router-link-active]:text-brand-coral'
 
-const { setFlash } = useFlashStore()
-
-async function handleLogout() {
-    await logout()
-
-    setFlash('Odjavljeni ste.')
-
+async function odjava() {
+    await authStore.logout()
+    toast.success('Odjavljeni ste.')
     router.push({ name: 'home' })
 }
-
-const navLink =
-    'rounded-md px-3 py-1.5 text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 ' +
-    'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900'
 </script>
 
 <template>
-    <header class="border-b border-slate-200 bg-white">
-        <div class="mx-auto flex h-14 max-w-3xl items-center justify-between gap-4 px-4">
-            <RouterLink to="/"
-                class="font-semibold tracking-tight text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900">
-                <img :src="logo" alt="Peshka logo">
+    <header class="bg-brand-navy">
+        <div class="mx-auto flex h-14 max-w-5xl items-center justify-between gap-4 px-4">
+            <RouterLink to="/">
+                <img :src="logo" alt="Peshka" class="h-7 brightness-0 invert" />
             </RouterLink>
 
-            <nav class="flex items-center gap-1 text-sm">
-
-                <div v-if="!authReady" class="h-5 w-32 animate-pulse rounded bg-slate-200" />
+            <nav class="flex items-center gap-1">
+                <div v-if="!authReady" class="h-5 w-32 animate-pulse rounded bg-white/10" />
 
                 <template v-else-if="isLoggedIn">
-                    <RouterLink to="/izlasci/novi" :class="navLink" active-class="bg-slate-100 text-slate-900">
-                        Novi izlazak +
-                    </RouterLink>
-                    <span class="mr-1 hidden text-slate-500 sm:inline">{{ user.email }}</span>
-                    <button type="button" :class="navLink" @click="handleLogout">Odjava</button>
+                    <Button as-child variant="ghost" :class="stavka">
+                        <RouterLink to="/izlasci">Moji izlasci</RouterLink>
+                    </Button>
+                    <Button as-child variant="ghost" :class="stavka">
+                        <RouterLink to="/analitika">Analitika</RouterLink>
+                    </Button>
+                    <Button as-child variant="ghost" :class="[stavka, 'hidden sm:inline-flex']">
+                        <RouterLink :to="{ name: 'profil', params: { id: user.uid } }">
+                            {{ punoIme }}
+                        </RouterLink>
+                    </Button>
+                    <Button variant="ghost" :class="stavka" @click="odjava">Odjava</Button>
                 </template>
 
                 <template v-else>
-                    <RouterLink to="/login" :class="navLink" active-class="bg-slate-100 text-slate-900">
-                        Prijava
-                    </RouterLink>
-                    <RouterLink to="/register"
-                        class="rounded-md bg-slate-900 px-3 py-1.5 font-medium text-white transition hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2">
-                        Registracija
-                    </RouterLink>
+                    <Button as-child variant="ghost" :class="stavka">
+                        <RouterLink to="/login">Prijava</RouterLink>
+                    </Button>
+                    <Button as-child>
+                        <RouterLink to="/register">Registracija</RouterLink>
+                    </Button>
                 </template>
             </nav>
         </div>
