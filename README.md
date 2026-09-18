@@ -14,6 +14,17 @@ Digitalni dnevnik ulova za sportske ribolovce.
 
 Erik Fakin - samostalan rad na cijelom projektu.
 
+## Demo
+
+Aplikacija je dostupna na **https://peshka-f5d4d.web.app**.
+
+Podaci za prijavu:
+
+| | |
+|---|---|
+| E-mail | `e.fakin3@gmail.com` |
+| Lozinka | `123123` |
+
 ## Što aplikacija radi
 
 Ribolovac zabilježi **izlazak** (datum, vrijeme polaska i povratka, polazište i
