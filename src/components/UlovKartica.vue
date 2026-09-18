@@ -27,7 +27,7 @@ const oznake = computed(() =>
     ].filter(Boolean),
 )
 
-// Npr. "Jugo 8 čv, more valovito"
+
 const vrijeme = computed(() => {
     const u = props.ulov.uvjeti
     if (!u) return ''

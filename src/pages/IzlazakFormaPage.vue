@@ -38,9 +38,6 @@ const datum = ref(isoDatum(new Date()))
 const vrijemeOd = ref('')
 const vrijemeDo = ref('')
 const naziv = ref('')
-// Naziv mjesta iz obrnutog geokodiranja. Čuvamo ga odvojeno od naziva
-// izlaska jer analitika grupira po mjestu, a naziv korisnik smije
-// prepisati u bilo što.
 const mjesto = ref('')
 const rucnoUpisano = ref(false)
 const trazimNaziv = ref(false)
@@ -62,7 +59,6 @@ const mozeSpremiti = computed(
         vrijemeOd.value &&
         naziv.value.trim() &&
         lokacija.value &&
-        // Sprema se ono što je u pregledu, pa čekamo da se osvježi za zadnji unos.
         meteoStanje.value !== 'ucitavanje',
 )
 
@@ -112,12 +108,12 @@ const predlozeniNaziv = computed(() => {
     return [mjesto.value, dan].filter(Boolean).join(' · ');
 })
 
-// Dok korisnik ne upiše svoj naziv, pratimo prijedlog
+
 watch(predlozeniNaziv, (novi) => {
     if (!rucnoUpisano.value) naziv.value = novi
 }, { immediate: true })
 
-// Nominatim dopušta jedan upit u sekundi, pa čekamo da oznaka stane.
+
 let odmakNaziv
 watch(
     lokacija,
@@ -145,8 +141,7 @@ watch(
 
 onUnmounted(() => clearTimeout(odmakNaziv))
 
-// Brojač upita: odgovor koji stigne nakon što su se polja opet promijenila
-// odbacujemo, da u pregledu nikad ne ostanu uvjeti za stari unos.
+
 let zadnjiUpit = 0
 
 async function ucitajMeteo() {
@@ -171,9 +166,6 @@ async function ucitajMeteo() {
     }
 }
 
-// Čekamo da korisnik prestane mijenjati polja da ne zovemo Open-Meteo na svaku
-// tipku. Stanje se ipak odmah prebacuje u učitavanje, da se za to vrijeme ne
-// može spremiti stari pregled.
 let odmak
 watch([lokacija, datum, vrijemeOd], () => {
     clearTimeout(odmak)

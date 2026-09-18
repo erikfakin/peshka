@@ -64,7 +64,6 @@ const mojiUlovi = computed(() => {
     return ulovi.value.filter((u) => dopusteni.has(u.izlazakId))
 })
 
-// Rang-ljestvica: najveće prvo, a rep se zbraja u "Ostalo" da graf ostane čitljiv.
 function poduljina(redci, vrh) {
     const poredani = [...redci].sort((a, b) => b.vrijednost - a.vrijednost)
     if (!vrh || poredani.length <= vrh) return poredani
@@ -75,7 +74,6 @@ function poduljina(redci, vrh) {
     return vrhovi
 }
 
-// Koliko je riba ulovljeno po nekom svojstvu samog ulova.
 function poUlovu(kljucFn, { redoslijed = null, vrh = null } = {}) {
     const grupe = new Map()
 
@@ -91,9 +89,6 @@ function poUlovu(kljucFn, { redoslijed = null, vrh = null } = {}) {
     return redci.sort((a, b) => redoslijed.indexOf(a.oznaka) - redoslijed.indexOf(b.oznaka))
 }
 
-// Prosjek ulova po izlasku za uvjete koji su vladali na polasku. Sirovi zbroj
-// ovdje ne bi značio ništa: na jugo se izlazi češće, pa bi i bez veze imalo
-// najviše ulova. Dijeljenjem s brojem izlazaka uspoređujemo jednako.
 function poIzlasku(kljucFn, { redoslijed = null } = {}) {
     const ulovaPoIzlasku = new Map()
     for (const ulov of mojiUlovi.value) {

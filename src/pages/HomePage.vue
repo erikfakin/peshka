@@ -66,7 +66,6 @@ async function ucitaj() {
 
 onMounted(ucitaj)
 
-// Imena autora dohvaćamo tek kad se oznaka otvori, i to samo ona koja još nemamo.
 async function ucitajAutore(grupa) {
     const nedostaju = [...new Set(grupa.ulovi.map((u) => u.korisnikId))].filter(
         (id) => id && !(id in autori.value),
@@ -90,8 +89,6 @@ function otvori(grupa) {
     ucitajAutore(grupa)
 }
 
-// Filtriramo u pregledniku: svi javni ulovi su ionako već dohvaćeni, pa bi
-// novi upit po svakoj promjeni filtra bio suvišan.
 const vrsteUPopisu = computed(() => {
     const ids = new Set(ulovi.value.map((u) => u.vrstaRibeId).filter(Boolean))
     return [...ids]
@@ -117,7 +114,7 @@ function ocistiFiltar() {
     filtarGodina.value = 'sve'
 }
 
-// Ulovi s približno istog mjesta dijele jednu oznaku na karti.
+
 const grupe = computed(() => {
     const mapa = new Map()
 
@@ -153,11 +150,11 @@ const poruka = computed(() => {
                 attribution="&copy; OpenStreetMap contributors" />
 
             <LMarker v-for="grupa in grupe" :key="grupa.kljuc" :lat-lng="grupa.latLng"
-                :icon="ikonaOznake(grupa.ulovi.length)"
-                @click="otvori(grupa)">
+                :icon="ikonaOznake(grupa.ulovi.length)" @click="otvori(grupa)">
                 <LTooltip>
                     {{ grupa.naziv ?? 'Ulov' }}<template v-if="grupa.ulovi.length > 1">
-                        · {{ grupa.ulovi.length }} {{ oblik(grupa.ulovi.length, ['ulov', 'ulova', 'ulova']) }}</template>
+                        · {{ grupa.ulovi.length }} {{ oblik(grupa.ulovi.length, ['ulov', 'ulova', 'ulova'])
+                        }}</template>
                 </LTooltip>
             </LMarker>
         </LMap>
